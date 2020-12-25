@@ -16,6 +16,12 @@ library(future.apply)
 library(foreach)
 
 #      Library                                                              ####
+library(raster)
+library(stringr)
+library(pbapply)
+library(future.apply)
+library(foreach)
+library(ggplot2)
 
 #      Functions                                                            ####
 source("2.Scripts/2.Functions/Auto_UTM_ID.R") 
@@ -520,3 +526,218 @@ HR_Samples2 <- do.call(rbind,HR_Sampling2)
 
 
 ###############################################################################
+#   Plotting and Exploratory Plots                                          ####
+#      Coordinate and Resolution Plots                                      ####
+#         HR Sampler 1                                                      ####
+#            [Spatial Data]                                                 ####
+
+# Extracting Spatial Data from the Raster names
+latNS     <- str_sub(string = HR_Samples1$RasterName,
+                     start  = 1,
+                     end    = 1)
+
+latCoord  <- str_sub(string = HR_Samples1$RasterName,
+                     start  = 2,
+                     end    = 3)
+
+longEW    <- str_sub(string = HR_Samples1$RasterName,
+                     start  = 4,
+                     end    = 4)
+
+longCoord <- str_sub(string = HR_Samples1$RasterName,
+                     start  = 5,
+                     end    = 7)
+
+# Adding the Spatial Coordinates to the existing Data Frame
+HR_Samples1$latNS     <- latNS
+HR_Samples1$latCoord  <- latCoord
+HR_Samples1$longEW    <- longEW
+HR_Samples1$longCoord <- longCoord
+
+#            [Plots]                                                        ####
+
+# Raster Cell Area vs Latitude
+ggplot(HR_Samples1,aes(as.numeric(HR_Samples1$latCoord),HR_Samples1$RasterRes))+
+  geom_point(aes(color = factor(HR_Samples1$latNS)), size = 2)+
+  ggtitle("Raster Area vs. Latidude Coordinate")+
+  ylab("Raster Area (m^2)")+
+  xlab("Latitude Coordinate")+
+  theme_bw()+
+  geom_smooth()
+
+# Raster Cell Area vs Longitude
+ggplot(HR_Samples1,aes(as.numeric(HR_Samples1$longCoord),HR_Samples1$RasterRes))+
+  geom_point(aes(color = factor(HR_Samples1$latNS)), size = 2)+
+  ggtitle("Raster Area vs. Longitude Coordinate")+
+  ylab("Raster Area (m^2)")+
+  xlab("Longitude Coordinate")+
+  theme_bw()+
+  geom_smooth()
+
+# Latitude vs Raster
+ggplot(HR_Samples1,aes(as.numeric(HR_Samples1$latCoord),HR_Samples1$xres))+
+  geom_point()+
+  ggtitle("Latitude Dim vs. Latidude Coordinate")+
+  ylab(" x dimension of Raster Cell (m)")+
+  xlab("Latitude Coordinate")+
+  theme_bw()+
+  geom_smooth()
+
+# Longitude vs Raster
+ggplot(HR_Samples1,aes(as.numeric(HR_Samples1$longCoord),HR_Samples1$xres))+
+  geom_point()+
+  ggtitle("Latitude Dim vs. Latidude Coordinate")+
+  ylab(" x dimension of Raster Cell (m)")+
+  xlab("Latitude Coordinate")+
+  theme_bw()+
+  geom_smooth()
+  
+
+#         HR Sampler 2                                                      ####
+#            [Spatial Data]                                                 ####
+
+# Extracting Spatial Data from the Raster names
+latNS     <- str_sub(string = HR_Samples2$RasterName,
+                     start  = 1,
+                     end    = 1)
+
+latCoord  <- str_sub(string = HR_Samples2$RasterName,
+                     start  = 2,
+                     end    = 3)
+
+longEW    <- str_sub(string = HR_Samples2$RasterName,
+                     start  = 4,
+                     end    = 4)
+
+longCoord <- str_sub(string = HR_Samples2$RasterName,
+                     start  = 5,
+                     end    = 7)
+
+# Adding the Spatial Coordinates to the existing Data Frame
+HR_Samples2$latNS     <- latNS
+HR_Samples2$latCoord  <- latCoord
+HR_Samples2$longEW    <- longEW
+HR_Samples2$longCoord <- longCoord
+
+#            [Plots]                                                        ####
+
+# Raster Cell Area vs Latitude
+ggplot(HR_Samples2,aes(as.numeric(HR_Samples2$latCoord),HR_Samples2$RasterRes))+
+  geom_point(aes(color = factor(HR_Samples2$latNS)), size = 2)+
+  ggtitle("Raster Area vs. Latidude Coordinate")+
+  ylab("Raster Area (m^2)")+
+  xlab("Latitude Coordinate")+
+  theme_bw()+
+  geom_smooth()
+
+# Raster Cell Area vs Longitude
+ggplot(HR_Samples2,aes(as.numeric(HR_Samples2$longCoord),HR_Samples2$RasterRes))+
+  geom_point(aes(color = factor(HR_Samples2$latNS)), size = 2)+
+  ggtitle("Raster Area vs. Longitude Coordinate")+
+  ylab("Raster Area (m^2)")+
+  xlab("Longitude Coordinate")+
+  theme_bw()+
+  geom_smooth()
+
+#         Comparison between sampler 1 and 2                                ####
+
+# Joining the Relevant Data
+RasRes1 <- HR_Samples1$RasterRes
+
+RasRes2 <- HR_Samples2$RasterRes
+
+Comparison <- data.frame(Sampler = c(rep(1,2000),rep(2,2000)),
+                         RasRes  = c(RasRes1,RasRes2))
+# Bar Plot
+ggplot(Comparison,aes(as.character(Comparison$Sampler),Comparison$RasRes))+
+  geom_boxplot()+
+  ggtitle("Raster Cell Surface Area v. HR Sampler")+
+  xlab("Home Range Sampler")+
+  ylab("Raster Cell Surface Area")+
+  theme_bw()
+
+#      Percent Difference and TRI (RAW)                                     ####
+#         HR Sampler 1                                                      ####
+
+# General Plot 
+ggplot(HR_Samples1, aes(TRI,PercentDifference))+
+  geom_point()+
+  ggtitle(" Home Range Sampler 1: Percent Difference v. TRI")+
+  theme_bw()+
+  geom_smooth()
+
+# Faceted Plot 
+ggplot(HR_Samples1, aes(TRI,PercentDifference))+
+  geom_point()+
+  ggtitle(" Home Range Sampler 1: Percent Difference v. TRI")+
+  theme_bw()+
+  geom_smooth()+
+  facet_grid(. ~ factor(Size_Category,levels = c("5km","10km","100km","250km")))
+
+#         HR Sampler 2                                                      ####
+
+# Plotting Percent Difference and  TRI 
+
+# General Plot 
+ggplot(HR_Samples2, aes(TRI,PercentDifference))+
+  geom_point()+
+  ggtitle(" Home Range Sampler 1: Percent Difference v. TRI")+
+  theme_bw()+
+  geom_smooth()
+
+# Faceted Plot 
+ggplot(HR_Samples2, aes(TRI,PercentDifference))+
+  geom_point()+
+  ggtitle(" Home Range Sampler 1: Percent Difference v. TRI")+
+  theme_bw()+
+  geom_smooth()+
+  facet_grid(. ~ factor(Size_Category,levels = c("5km","10km","100km","250km")))
+
+#      Percent Difference and TRI (Corrected)                               ####
+#         HR Sampler 1                                                      ####
+
+# General Plot 
+ggplot(HR_Samples1, aes((TRI/RasterRes),PercentDifference))+
+  geom_point()+
+  ggtitle(" Home Range Sampler 1: Percent Difference v. TRI")+
+  theme_bw()+
+  geom_smooth()
+
+# Faceted Plot 
+ggplot(HR_Samples1, aes((TRI/RasterRes),PercentDifference))+
+  geom_point()+
+  ggtitle(" Home Range Sampler 1: Percent Difference v. TRI")+
+  theme_bw()+
+  geom_smooth()+
+  facet_grid(. ~ factor(Size_Category,levels = c("5km","10km","100km","250km")))
+
+#         HR Sampler 2                                                      ####
+
+# Plotting Percent Difference and  TRI 
+
+# General Plot 
+ggplot(HR_Samples2, aes((TRI/RasterRes),PercentDifference))+
+  geom_point()+
+  ggtitle(" Home Range Sampler 1: Percent Difference v. TRI")+
+  theme_bw()+
+  geom_smooth()
+
+# Faceted Plot 
+ggplot(HR_Samples2, aes((TRI/RasterRes),PercentDifference))+
+  geom_point()+
+  ggtitle(" Home Range Sampler 1: Percent Difference v. TRI")+
+  theme_bw()+
+  geom_smooth()+
+  facet_grid(. ~ factor(Size_Category,levels = c("5km","10km","100km","250km")))
+
+
+
+
+
+
+
+
+
+
+
+
