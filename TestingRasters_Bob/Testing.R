@@ -31,6 +31,8 @@ source("2.Scripts/2.Functions/PercentDifferenceFunction.R")
 source("2.Scripts/2.Functions/FactorCalculator.R")
 
 #      Data                                                                 ####
+
+# Raster Data
 RasterFilepaths<-list.files("G:\\RAW_DEM_Tiles",
                             recursive = F,
                             full.names = T,
@@ -39,6 +41,11 @@ RasterFilepaths<-list.files("G:\\RAW_DEM_Tiles",
 Sampled_Rasters <-sample(RasterFilepaths,100,replace = F)
 
 ZoneList<-read.csv("1.Data\\z.UTM_Reprojections\\DF_UTM_Zones.csv")
+
+# Home Range Sample Data 
+
+HR_Samples1 <- read.csv("TestingRasters_Bob/HR_Samples1.csv")
+HR_Samples2 <- read.csv("TestingRasters_Bob/HR_Samples2.csv")
 
 ###############################################################################
 #   Home Range Sampling [Development]                                       ####
@@ -579,25 +586,6 @@ ggplot(HR_Samples1,aes(as.numeric(HR_Samples1$longCoord),HR_Samples1$RasterRes))
   theme_bw()+
   geom_smooth()
 
-# Latitude vs Raster
-ggplot(HR_Samples1,aes(as.numeric(HR_Samples1$latCoord),HR_Samples1$xres))+
-  geom_point()+
-  ggtitle("Latitude Dim vs. Latidude Coordinate")+
-  ylab(" x dimension of Raster Cell (m)")+
-  xlab("Latitude Coordinate")+
-  theme_bw()+
-  geom_smooth()
-
-# Longitude vs Raster
-ggplot(HR_Samples1,aes(as.numeric(HR_Samples1$longCoord),HR_Samples1$xres))+
-  geom_point()+
-  ggtitle("Latitude Dim vs. Latidude Coordinate")+
-  ylab(" x dimension of Raster Cell (m)")+
-  xlab("Latitude Coordinate")+
-  theme_bw()+
-  geom_smooth()
-  
-
 #         HR Sampler 2                                                      ####
 #            [Spatial Data]                                                 ####
 
@@ -661,7 +649,7 @@ ggplot(Comparison,aes(as.character(Comparison$Sampler),Comparison$RasRes))+
   ylab("Raster Cell Surface Area")+
   theme_bw()
 
-#      Percent Difference and TRI (RAW)                                     ####
+#      Percent Difference v TRI (RAW)                                       ####
 #         HR Sampler 1                                                      ####
 
 # General Plot 
@@ -686,32 +674,32 @@ ggplot(HR_Samples1, aes(TRI,PercentDifference))+
 # General Plot 
 ggplot(HR_Samples2, aes(TRI,PercentDifference))+
   geom_point()+
-  ggtitle(" Home Range Sampler 1: Percent Difference v. TRI")+
+  ggtitle(" Home Range Sampler 2: Percent Difference v. TRI")+
   theme_bw()+
   geom_smooth()
 
 # Faceted Plot 
 ggplot(HR_Samples2, aes(TRI,PercentDifference))+
   geom_point()+
-  ggtitle(" Home Range Sampler 1: Percent Difference v. TRI")+
+  ggtitle(" Home Range Sampler 2: Percent Difference v. TRI")+
   theme_bw()+
   geom_smooth()+
   facet_grid(. ~ factor(Size_Category,levels = c("5km","10km","100km","250km")))
 
-#      Percent Difference and TRI (Corrected)                               ####
+#      Percent Difference v TRI (Corrected)                                 ####
 #         HR Sampler 1                                                      ####
 
 # General Plot 
 ggplot(HR_Samples1, aes((TRI/RasterRes),PercentDifference))+
   geom_point()+
-  ggtitle(" Home Range Sampler 1: Percent Difference v. TRI")+
+  ggtitle(" Home Range Sampler 1: Percent Difference v. Adjusted TRI")+
   theme_bw()+
   geom_smooth()
 
 # Faceted Plot 
 ggplot(HR_Samples1, aes((TRI/RasterRes),PercentDifference))+
   geom_point()+
-  ggtitle(" Home Range Sampler 1: Percent Difference v. TRI")+
+  ggtitle(" Home Range Sampler 1: Percent Difference v. Adjusted TRI")+
   theme_bw()+
   geom_smooth()+
   facet_grid(. ~ factor(Size_Category,levels = c("5km","10km","100km","250km")))
@@ -723,14 +711,14 @@ ggplot(HR_Samples1, aes((TRI/RasterRes),PercentDifference))+
 # General Plot 
 ggplot(HR_Samples2, aes((TRI/RasterRes),PercentDifference))+
   geom_point()+
-  ggtitle(" Home Range Sampler 1: Percent Difference v. TRI")+
+  ggtitle(" Home Range Sampler 2: Percent Difference v. Adjusted TRI")+
   theme_bw()+
   geom_smooth()
 
 # Faceted Plot 
 ggplot(HR_Samples2, aes((TRI/RasterRes),PercentDifference))+
   geom_point()+
-  ggtitle(" Home Range Sampler 1: Percent Difference v. TRI")+
+  ggtitle(" Home Range Sampler 2: Percent Difference v. Adjusted TRI")+
   theme_bw()+
   geom_smooth()+
   facet_grid(. ~ factor(Size_Category,levels = c("5km","10km","100km","250km")))
