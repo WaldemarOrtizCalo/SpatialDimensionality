@@ -398,6 +398,9 @@ plan("sequential")
 
 HR_Samples1 <- do.call(rbind,HR_Sampling1)
 
+write.csv(HR_Samples1,"TestingRasters_Bob/HR_Samples1.csv",
+          row.names = F)
+
 #      Sampler 2                                                            ####
 
 # Code For Sampler 2
@@ -524,6 +527,8 @@ plan("sequential")
 
 HR_Samples2 <- do.call(rbind,HR_Sampling2)
 
+write.csv(HR_Samples2,"TestingRasters_Bob/HR_Samples2.csv",
+          row.names = F)
 
 ###############################################################################
 #   Plotting and Exploratory Plots                                          ####
