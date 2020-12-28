@@ -571,7 +571,7 @@ HR_Samples1$longCoord <- longCoord
 # Raster Cell Area vs Latitude
 ggplot(HR_Samples1,aes(as.numeric(HR_Samples1$latCoord),HR_Samples1$RasterRes))+
   geom_point(aes(color = factor(HR_Samples1$latNS)), size = 2)+
-  ggtitle("Raster Area vs. Latidude Coordinate")+
+  ggtitle("Home Range Sampler 1: Raster Area vs. Latidude Coordinate")+
   ylab("Raster Area (m^2)")+
   xlab("Latitude Coordinate")+
   theme_bw()+
@@ -580,7 +580,7 @@ ggplot(HR_Samples1,aes(as.numeric(HR_Samples1$latCoord),HR_Samples1$RasterRes))+
 # Raster Cell Area vs Longitude
 ggplot(HR_Samples1,aes(as.numeric(HR_Samples1$longCoord),HR_Samples1$RasterRes))+
   geom_point(aes(color = factor(HR_Samples1$latNS)), size = 2)+
-  ggtitle("Raster Area vs. Longitude Coordinate")+
+  ggtitle("Home Range Sampler 1: Raster Area vs. Longitude Coordinate")+
   ylab("Raster Area (m^2)")+
   xlab("Longitude Coordinate")+
   theme_bw()+
@@ -617,7 +617,7 @@ HR_Samples2$longCoord <- longCoord
 # Raster Cell Area vs Latitude
 ggplot(HR_Samples2,aes(as.numeric(HR_Samples2$latCoord),HR_Samples2$RasterRes))+
   geom_point(aes(color = factor(HR_Samples2$latNS)), size = 2)+
-  ggtitle("Raster Area vs. Latidude Coordinate")+
+  ggtitle("Home Range Sampler 2: Raster Area vs. Latidude Coordinate")+
   ylab("Raster Area (m^2)")+
   xlab("Latitude Coordinate")+
   theme_bw()+
@@ -626,7 +626,7 @@ ggplot(HR_Samples2,aes(as.numeric(HR_Samples2$latCoord),HR_Samples2$RasterRes))+
 # Raster Cell Area vs Longitude
 ggplot(HR_Samples2,aes(as.numeric(HR_Samples2$longCoord),HR_Samples2$RasterRes))+
   geom_point(aes(color = factor(HR_Samples2$latNS)), size = 2)+
-  ggtitle("Raster Area vs. Longitude Coordinate")+
+  ggtitle("Home Range Sampler 2: Raster Area vs. Longitude Coordinate")+
   ylab("Raster Area (m^2)")+
   xlab("Longitude Coordinate")+
   theme_bw()+
@@ -711,7 +711,7 @@ ggplot(HR_Samples1, aes((TRI/RasterRes),PercentDifference))+
 # General Plot 
 ggplot(HR_Samples2, aes((TRI/RasterRes),PercentDifference))+
   geom_point()+
-  ggtitle(" Home Range Sampler 2: Percent Difference v. Adjusted TRI")+
+  ggtitle("Home Range Sampler 2: Percent Difference v. Adjusted TRI")+
   theme_bw()+
   geom_smooth()
 

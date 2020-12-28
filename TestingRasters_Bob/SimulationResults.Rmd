@@ -1,0 +1,213 @@
+---
+title: "Relationship Exploration"
+author: "Waldemar Ortiz-Calo"
+date: "12/28/2020"
+output: html_document
+---
+```{r readData,echo=FALSE}
+# Library
+library(ggplot2)
+# Data 
+HR_Samples1 <- read.csv("D:\\Drive\\Research\\RECaP\\2.INPROGRESS\\1.SpatialDimensionality\\TestingRasters_Bob\\HR_Samples1.csv")
+HR_Samples2 <- read.csv("D:\\Drive\\Research\\RECaP\\2.INPROGRESS\\1.SpatialDimensionality\\TestingRasters_Bob\\HR_Samples2.csv")
+Comparison  <- read.csv("D:\\Drive\\Research\\RECaP\\2.INPROGRESS\\1.SpatialDimensionality\\TestingRasters_Bob\\Comparison.csv")
+
+```
+
+### **Definitions (Just to be on the same page)**
+
+**Raster Tile**:    The DEM tile that was downloaded from the public database for our analyses. This tile represents a one degree by one degree area of the Earth's surface. 
+
+**Raster Cell**: Reference to a raster tile's individual cells. 
+
+**Raster Cell Surface Area**: The 2D surface area of a raster cell. 
+
+**HR Sampler 1**: Home range sampling algorithm that I wrote. This sampler does not correct for raster cell size. 
+
+**HR Sampler 2**: Home range sampling algorithm that I wrote. This sampler standardizes raster cell surface area as best as it can prior to analyses. My "standard" cell size was 30 meters by 30 meters. Since I did not want to implement a complicated interpolation algorithm, the standardization uses the best whole value. For example, if a cell's dimensions were 24 x 30, the algorithm does not change the dimensions. On the other hand, if the dimensions are 14 x 30, the algorithm recognizes this and changes the dimensions to 28 x 30 since it is the closest it can get it to.  
+
+**Percent Difference**: The percent difference between the 2D home range estimate and the 2D+. 
+
+**TRI**: Terrain Ruggedness Index
+
+### **General Overview**
+
+This is a summary of the data exploration efforts that we discussed in our previous zoom call. I will provide a breakdown of the steps that I took and the results of the simulations I ran. 
+
+First, we discussed the possibility of finding rasters for the northern latitudes that meet our resolutions needs. I looked over several databases, including the one you shared with me, and I concluded that using data from two different databases would greatly complicate the analysis. It was very common that databases used different projection formats, had proprietary naming conventions for their data, and often collected data in different ways that would make the delineation of data difficult between two different databases. With this being the case, I decided to proceed with an alternative solution. I wrote two different home range sampling algorithm which randomly selected raster tiles from the global databases and performed the relevant calcultions on said rasters.
+
+I performed a series of simulations with 100 randomly selected raster tiles, calculated different home range sizes (5, 10, 100, 250 km²), and sampled 5 home range estimates from each size category for each raster. Once these simulations were completed, I compiled a series of plots that describe the data for further discussion. 
+This report was divided into three different sections:
+
+(i)	Relationship between raster cell size and global coordinates. 
+(ii) Relationship between Percent Difference in HR Estimate and TRI 
+(iii) Relationship between Percent Difference in HR Estimate and an Adjusted TRI
+
+### **Section 1: Raster Cell Surface Area vs. Global Coordinates**
+
+In this section I compare Raster Cell Surface Area with the latitudes and longitude of the Raster tiles. As we have discussed, you will see that as the latitudinal value increases, the surface area of the raster cells decreases. You can also see how drastic this relationship when you compare latitudes nears the equator versus latitudes near to the poles. Longitude does not seem to have any relationship with raster cell surface area. This is consistent with what we have talked about before. The higher you go in latitude, the greater the size differences in Raster Cell dimensions. For example, at the equator, raster cells were 30 x 30m. But, in the higher latitudes raster cells were around the vicinity of 11 x 30m. 
+
+I then plotted this relationship using the home range sampler 2 which standardized raster cells to be as close to 30 x 30 as possible. This yielded these plots that seem highly irregular and do not make a lot of sense. But, once you compare the Raster Cell Surface Area between Sampler 1 and 2, you will see the effects of the raster surface area correction. The range of raster surface area sizes is greatly reduced with the majority of the raster surface areas being close to 900m^2^.
+
+Note: I could not figure out how to rename the legend so I want to briefly explain it here. The two categories represent Northern and Southern raster tiles from the equator. I basically added that to show that the relationship is consistent throughout the world.
+
+#### **Home Range Sampler 1**
+
+```{r, echo = F, warning = FALSE, message = FALSE}
+# Raster Cell Area vs Latitude
+ggplot(HR_Samples1,aes(as.numeric(HR_Samples1$latCoord),HR_Samples1$RasterRes))+
+  geom_point(aes(color = factor(HR_Samples1$latNS)), size = 2)+
+  ggtitle("Home Range Sampler 1: Raster Area vs. Latidude Coordinate")+
+  ylab("Raster Area (m^2)")+
+  xlab("Latitude Coordinate")+
+  theme_bw()+
+  geom_smooth()
+
+# Raster Cell Area vs Longitude
+ggplot(HR_Samples1,aes(as.numeric(HR_Samples1$longCoord),HR_Samples1$RasterRes))+
+  geom_point(aes(color = factor(HR_Samples1$latNS)), size = 2)+
+  ggtitle("Home Range Sampler 1: Raster Area vs. Longitude Coordinate")+
+  ylab("Raster Area (m^2)")+
+  xlab("Longitude Coordinate")+
+  theme_bw()+
+  geom_smooth()
+```
+
+
+#### **Home Range Sampler 2**
+
+
+```{r, echo = F, warning = FALSE, message = FALSE}
+# Raster Cell Area vs Latitude
+ggplot(HR_Samples2,aes(as.numeric(HR_Samples2$latCoord),HR_Samples2$RasterRes))+
+  geom_point(aes(color = factor(HR_Samples2$latNS)), size = 2)+
+  ggtitle("Home Range Sampler 2: Raster Area vs. Latidude Coordinate")+
+  ylab("Raster Area (m^2)")+
+  xlab("Latitude Coordinate")+
+  theme_bw()+
+  geom_smooth()
+
+# Raster Cell Area vs Longitude
+ggplot(HR_Samples2,aes(as.numeric(HR_Samples2$longCoord),HR_Samples2$RasterRes))+
+  geom_point(aes(color = factor(HR_Samples2$latNS)), size = 2)+
+  ggtitle("Home Range Sampler 2: Raster Area vs. Longitude Coordinate")+
+  ylab("Raster Area (m^2)")+
+  xlab("Longitude Coordinate")+
+  theme_bw()+
+  geom_smooth()
+```
+
+
+#### **Comparison**
+
+
+```{r, echo = F, warning = FALSE, message = FALSE}
+ggplot(Comparison,aes(as.character(Comparison$Sampler),Comparison$RasRes))+
+  geom_boxplot()+
+  ggtitle("Raster Cell Surface Area v. HR Sampler")+
+  xlab("Home Range Sampler")+
+  ylab("Raster Cell Surface Area")+
+  theme_bw()
+```
+
+
+
+
+### **Section 2: Percent Difference v TRI (RAW)**
+
+In this section I plot the relationship between Percent Difference and TRI in its raw version. What I mean by raw is that I did not alter nor manipulate the variable.
+
+#### **Home Range Sampler 1**
+
+```{r, echo = F, warning = FALSE, message = FALSE}
+# General Plot 
+ggplot(HR_Samples1, aes(TRI,PercentDifference))+
+  geom_point()+
+  ggtitle("General Plot: Percent Difference v. TRI")+
+  theme_bw()+
+  geom_smooth()
+
+# Faceted Plot 
+ggplot(HR_Samples1, aes(TRI,PercentDifference))+
+  geom_point()+
+  ggtitle("Faceted Home Range Plot: Percent Difference v. TRI")+
+  theme_bw()+
+  geom_smooth()+
+  facet_grid(. ~ factor(Size_Category,levels = c("5km","10km","100km","250km")))
+```
+
+
+#### **Home Range Sampler 2**
+
+
+```{r, echo = F, warning = FALSE, message = FALSE}
+# General Plot 
+ggplot(HR_Samples2, aes(TRI,PercentDifference))+
+  geom_point()+
+  ggtitle("General Plot: Percent Difference v. TRI")+
+  theme_bw()+
+  geom_smooth()
+
+# Faceted Plot 
+ggplot(HR_Samples2, aes(TRI,PercentDifference))+
+  geom_point()+
+  ggtitle("Faceted Home Range Plot: Percent Difference v. TRI")+
+  theme_bw()+
+  geom_smooth()+
+  facet_grid(. ~ factor(Size_Category,levels = c("5km","10km","100km","250km")))
+```
+
+
+
+### **Section 3: Percent Difference v TRI (Corrected)**
+
+In this section I plot the relationship between Percent Difference and a corrected TRI. As we discussed before, the corrected TRI is a home range's average TRI value divided by the Raster's base cell surface area. 
+
+#### **Home Range Sampler 1**
+
+```{r, echo = F, warning = FALSE, message = FALSE}
+
+# General Plot 
+ggplot(HR_Samples1, aes((TRI/RasterRes),PercentDifference))+
+  geom_point()+
+  ggtitle("General Plot: Percent Difference v. Adjusted TRI")+
+  theme_bw()+
+  geom_smooth()
+
+# Faceted Plot 
+ggplot(HR_Samples1, aes((TRI/RasterRes),PercentDifference))+
+  geom_point()+
+  ggtitle("Faceted Home Range Plot: Percent Difference v. Adjusted TRI")+
+  theme_bw()+
+  geom_smooth()+
+  facet_grid(. ~ factor(Size_Category,levels = c("5km","10km","100km","250km")))
+```
+
+
+#### **Home Range Sampler 2**
+
+
+```{r, echo = F, warning = FALSE, message = FALSE}
+# General Plot 
+ggplot(HR_Samples2, aes((TRI/RasterRes),PercentDifference))+
+  geom_point()+
+  ggtitle("General Plot: Percent Difference v. Adjusted TRI")+
+  theme_bw()+
+  geom_smooth()
+
+# Faceted Plot 
+ggplot(HR_Samples2, aes((TRI/RasterRes),PercentDifference))+
+  geom_point()+
+  ggtitle("Faceted Home Range Plot: Percent Difference v. Adjusted TRI")+
+  theme_bw()+
+  geom_smooth()+
+  facet_grid(. ~ factor(Size_Category,levels = c("5km","10km","100km","250km")))
+
+```
+
+
+
+
+### **Conclusion And Moving Forward**
+
+Based on this exploration of the relationship between Raster Cell surface area / dimension, I think the best path moving forward will be using the Home Range Sampling Algorithm 2 with a RAW TRI value. The differences between the adjusted TRI and the RAW TRI are minimized when using the HR Sampler 2, plus using the RAW TRI provides a much more straighforward approach than explaining the reseasoning behind the corrected TRI. 
