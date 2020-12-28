@@ -382,7 +382,7 @@ summary {
 
 <div id="definitions-just-to-be-on-the-same-page" class="section level3">
 <h3><strong>Definitions (Just to be on the same page)</strong></h3>
-<p><strong>Raster Tile</strong>: The DEM tile that was downloaded from the public database for our analyses. This tile represents a one degree by one degree area of the Earth’s surface.</p>
+<p><strong>Raster Tile</strong>: A DEM raster tile that was downloaded from the public database. Each tile represents a one degree by one degree area of the Earth’s surface.</p>
 <p><strong>Raster Cell</strong>: Reference to a raster tile’s individual cells.</p>
 <p><strong>Raster Cell Surface Area</strong>: The 2D surface area of a raster cell.</p>
 <p><strong>HR Sampler 1</strong>: Home range sampling algorithm that I wrote. This sampler does not correct for raster cell size.</p>
@@ -392,9 +392,10 @@ summary {
 </div>
 <div id="general-overview" class="section level3">
 <h3><strong>General Overview</strong></h3>
-<p>This is a summary of the data exploration efforts that we discussed in our previous zoom call. I will provide a breakdown of the steps that I took and the results of the simulations I ran.</p>
-<p>First, we discussed the possibility of finding rasters for the northern latitudes that meet our resolutions needs. I looked over several databases, including the one you shared with me, and I concluded that using data from two different databases would greatly complicate the analysis. It was very common that databases used different projection formats, had proprietary naming conventions for their data, and often collected data in different ways that would make the delineation of data difficult between two different databases. With this being the case, I decided to proceed with an alternative solution. I wrote two different home range sampling algorithm which randomly selected raster tiles from the global databases and performed the relevant calcultions on said rasters.</p>
-<p>I performed a series of simulations with 100 randomly selected raster tiles, calculated different home range sizes (5, 10, 100, 250 km²), and sampled 5 home range estimates from each size category for each raster. Once these simulations were completed, I compiled a series of plots that describe the data for further discussion. This report was divided into three different sections:</p>
+<p>This is a summary of the data exploration efforts that we previously. I will provide a breakdown of the steps that I took and the results of the simulations I ran.</p>
+<p>First, we discussed the possibility of finding rasters for the northern latitudes that meet our resolutions needs. I looked over several databases, including the one you shared with me, and I concluded that using data from two different databases would greatly complicate the analysis. It was very common that databases used different projection formats, had proprietary naming conventions for their data, and often collected data in different ways that would make the delineation of data difficult between two different databases. With this being the case, I decided to proceed with an alternative solution. I wrote two different home range sampling algorithms which randomly selected raster tiles from the global database and performed the relevant calculations on said rasters.</p>
+<p>I performed a series of simulations with 100 randomly selected raster tiles, calculated different home range sizes (5, 10, 100, 250 km²), and sampled 5 home range estimates from each size category for each raster. Once these simulations were completed, I compiled a series of plots that describe the data for further discussion.</p>
+<p>This report was divided into three different sections:</p>
 <ol style="list-style-type: lower-roman">
 <li>Relationship between raster cell size and global coordinates.</li>
 <li>Relationship between Percent Difference in HR Estimate and TRI</li>
@@ -403,8 +404,8 @@ summary {
 </div>
 <div id="section-1-raster-cell-surface-area-vs.-global-coordinates" class="section level3">
 <h3><strong>Section 1: Raster Cell Surface Area vs. Global Coordinates</strong></h3>
-<p>In this section I compare Raster Cell Surface Area with the latitudes and longitude of the Raster tiles. As we have discussed, you will see that as the latitudinal value increases, the surface area of the raster cells decreases. You can also see how drastic this relationship when you compare latitudes nears the equator versus latitudes near to the poles. Longitude does not seem to have any relationship with raster cell surface area. This is consistent with what we have talked about before. The higher you go in latitude, the greater the size differences in Raster Cell dimensions. For example, at the equator, raster cells were 30 x 30m. But, in the higher latitudes raster cells were around the vicinity of 11 x 30m.</p>
-<p>I then plotted this relationship using the home range sampler 2 which standardized raster cells to be as close to 30 x 30 as possible. This yielded these plots that seem highly irregular and do not make a lot of sense. But, once you compare the Raster Cell Surface Area between Sampler 1 and 2, you will see the effects of the raster surface area correction. The range of raster surface area sizes is greatly reduced with the majority of the raster surface areas being close to 900m<sup>2</sup>.</p>
+<p>In this section I compare Raster Cell Surface Area with the latitudes and longitude of the Raster tiles. As we have discussed, you will see that as the latitudinal value increases, the surface area of the raster cells decrease. You can also see how drastic this relationship is when you compare latitudes near the equator versus latitudes nearer to the poles. Longitude does not seem to have a relationship with raster cell surface area. This is consistent with what we have talked about before. The higher you go in latitude, the greater the size differences in Raster Cell dimensions. For example, at the equator, raster cells were 30 x 30m. But, in the higher latitudes raster cells were around the vicinity of 11 x 30m.</p>
+<p>I plotted this relationship using the home range sampler 2 which standardized raster cells to be as close to 30 x 30 as possible. This yielded these plots that seem highly irregular and do not make a lot of sense (aka there is not realtionship). But, once you compare the Raster Cell Surface Areas between Sampler 1 and 2, you will see the effects of the raster surface area correction. The range of raster surface area sizes is greatly reduced with the majority of the raster surface areas being close to 900m<sup>2</sup>.</p>
 <p>Note: I could not figure out how to rename the legend so I want to briefly explain it here. The two categories represent Northern and Southern raster tiles from the equator. I basically added that to show that the relationship is consistent throughout the world.</p>
 <div id="home-range-sampler-1" class="section level4">
 <h4><strong>Home Range Sampler 1</strong></h4>
@@ -445,7 +446,7 @@ summary {
 </div>
 <div id="conclusion-and-moving-forward" class="section level3">
 <h3><strong>Conclusion And Moving Forward</strong></h3>
-<p>Based on this exploration of the relationship between Raster Cell surface area / dimension, I think the best path moving forward will be using the Home Range Sampling Algorithm 2 with a RAW TRI value. The differences between the adjusted TRI and the RAW TRI are minimized when using the HR Sampler 2, plus using the RAW TRI provides a much more straighforward approach than explaining the reseasoning behind the corrected TRI.</p>
+<p>Based on this simulation analysis, I think the best path moving forward will be using Home Range Sampling Algorithm 2 with a RAW TRI value as a independent varaible. The size correction normalizes the data to a certain degree where the variablility in raster cell surface area does not bias the results. As for the TRI, this size correction eliminates the need of using the adjusted TRI. Furthermore, using the RAW TRI provides a much more straightforward explanation of the methods.</p>
 </div>
 
 
