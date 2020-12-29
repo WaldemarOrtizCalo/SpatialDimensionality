@@ -38,7 +38,7 @@ RasterFilepaths<-list.files("G:\\RAW_DEM_Tiles",
                             full.names = T,
                             pattern = "dem")
 
-Sampled_Rasters <-sample(RasterFilepaths,50,replace = F)
+Sampled_Rasters <-sample(RasterFilepaths,500,replace = F)
 
 ZoneList<-read.csv("1.Data\\z.UTM_Reprojections\\DF_UTM_Zones.csv")
 
@@ -963,6 +963,9 @@ RasRes3 <- HR_Samples3$RasterRes
 
 Comparison <- data.frame(Sampler = c(rep(1,2000),rep(2,2000),rep(3,2000)),
                          RasRes  = c(RasRes1,RasRes2,RasRes3))
+
+write.csv(Comparison,file = "TestingRasters_Bob\\Comparison.csv")
+
 # Bar Plot
 ggplot(Comparison,aes(as.character(Comparison$Sampler),Comparison$RasRes))+
   geom_boxplot()+
@@ -1106,3 +1109,5 @@ ggplot(HR_Samples3, aes((TRI/RasterRes),PercentDifference))+
 
 
 
+
+###############################################################################
