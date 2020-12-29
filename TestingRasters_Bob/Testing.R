@@ -38,7 +38,7 @@ RasterFilepaths<-list.files("G:\\RAW_DEM_Tiles",
                             full.names = T,
                             pattern = "dem")
 
-Sampled_Rasters <-sample(RasterFilepaths,100,replace = F)
+Sampled_Rasters <-sample(RasterFilepaths,50,replace = F)
 
 ZoneList<-read.csv("1.Data\\z.UTM_Reprojections\\DF_UTM_Zones.csv")
 
@@ -282,6 +282,141 @@ S2 <- HR_Sampler2(RasterFilepath = Sampled_Rasters[1],
 
 
 
+#      Sampler 3 [Resampling]                                               ####
+
+# Code For Sampler 3
+HR_Sampler3 <- function(RasterFilepath,BaseAgg_size,HR_Sizes,sample.size){
+  tryCatch({
+    
+    #### Notes                                                              ####
+    # RasterFilepath = Filepath of the raster that will be processed.
+    # BaseAgg_size   = The Raster Cell size you want in meters.
+    # HR_Sizes       = List of the home range sizes in square km.
+    # sample.size    = Quantity of "home ranges" to be extracted.
+    
+    #### Data Import and Transformations                                    ####
+    
+    # Raster Import,Reprojecting, and Standardizing Base Cell Size
+    Raster<-raster(RasterFilepath)
+    Raster_Reprojected <- projectRaster(Raster,
+                                        crs = paste0("+proj=utm +zone=",
+                                                     Auto_UTM_ID(Raster),
+                                                     " +ellps=WGS84 +datum=WGS84 +units=m +no_defs"))
+    
+    Raster_Reprojected <- aggregate(Raster_Reprojected, 
+                                    fact = c(FactorCalculator_Agg(xres(Raster_Reprojected),BaseAgg_size),
+                                             FactorCalculator_Agg(yres(Raster_Reprojected),BaseAgg_size)))
+    
+    # Naming the Raster as DEM to make sure it is consistent
+    names(Raster_Reprojected) <- "DEM"
+    
+    
+    ####   Percent Difference in Surface Area Raster                        ####
+    
+    # Creating the Percent Difference Raster 
+    Raster_PDif <- PercentDifferenceFunction(Raster_Reprojected)
+    
+    # Naming the Raster as PercentDifference to make sure it is consistent
+    names(Raster_PDif)<-"PercentDifference" 
+    
+    ####   TRI Raster                                                       ####
+    
+    # Creating the TRI Raster
+    Raster_TRI <- terrain(Raster_Reprojected,opt="TRI")
+    
+    # Naming the Raster as TRI to make sure it is consistent
+    names(Raster_TRI)<-"TRI" 
+    
+    ####   Eliminating Zero values from DEM and PercentDifference Raster    ####
+    
+    # Eliminating zeros from the DEM raster.
+    Raster_Reprojected <- overlay(Raster_Reprojected, 
+                                  Raster_TRI, 
+                                  fun = function(x, y) {
+                                    x[is.na(y[])] <- NA
+                                    return(x)
+                                  })
+    
+    # Renaming the DEM raster again to make sure its consistent
+    names(Raster_Reprojected) <- "DEM"
+    
+    # Eliminating zeros from the PercentDifference raster.
+    Raster_PDif <- overlay(Raster_PDif,
+                           Raster_TRI,
+                           fun = function(x, y) {
+                             x[is.na(y[])] <- NA
+                             return(x)
+                           })
+    
+    # Renaming the PercentDifference raster again to make sure its consistent
+    names(Raster_PDif)<-"PercentDifference"
+    
+    ####   Stack                                                            ####
+  
+    #   Creating a Stack of the created Rasters
+    Stack<-raster::stack(Raster_Reprojected,
+                         Raster_TRI,
+                         Raster_PDif)
+    
+    ####   Resampling Raster                                                ####
+    
+    DefaultRes <- Stack
+    res(DefaultRes) <- BaseAgg_size
+    
+    Resamp <- resample(Stack, x, method = "bilinear")
+    
+    
+    #### Home Range Sampling                                                ####
+    
+    # Coarsening the Raster Layers and Sampling Home Ranges
+    HRs <- foreach(i = 1:length(HR_Sizes), .combine = rbind) %do% {
+      
+      # Changing Raster Resolutions to simulate Home Ranges
+      Random_CellSample <- aggregate(Stack,
+                                    fact = c(FactorCalculator(xres(Raster_Reprojected),i),FactorCalculator(yres(Raster_Reprojected),i)),
+                                    fun=mean,na.rm=TRUE)
+      
+      # Resampling
+      
+      TargetResLayer <- Random_CellSample
+      res(TargetResLayer) <- BaseAgg_size
+      
+      Random_CellSample <- resample(Random_CellSample, TargetResLayer, method = "bilinear")
+      
+      Random_CellSample <- sampleRandom(Random_CellSample,size=sample.size,na.rm=T) %>% as.data.frame()
+      
+     # Sampling Home Range Cells
+      Random_CellSample <- cbind(Size_Category=paste0(HR_Sizes[i],"km"),Random_CellSample)
+      
+    }
+    
+    #### Data Aggregation and Extracting Results                            ####
+    
+    # Raster Name
+    RasterName<-WOC_RasterName(Raster)
+    
+    # Raster Resolution in Square Meters 
+    RasterRes <- prod(res(Raster_Reprojected))
+    
+    # x Dimensions of Raster Cell
+    xres <- xres(Raster_Reprojected)
+    
+    # y Dimension of Raster Cell 
+    yres <- yres(Raster_Reprojected)
+    
+    # Organizing Results into a Dataframe 
+    Final_DF<-cbind(RasterName,RasterRes,xres,yres,HRs)
+    
+    return(Final_DF)},
+    error=function(e) c(NA))
+}
+
+
+# Running Sampler 2 with one Raster
+S3 <- HR_Sampler3(RasterFilepath = Sampled_Rasters[1],
+                  BaseAgg_size   = 30,
+                  HR_Sizes       = c(10,100),
+                  sample.size    = 5)
 ###############################################################################
 #   Home Range Sampling [Running a small sample size]                       ####
 #      Sampler 1                                                            ####
@@ -537,6 +672,145 @@ HR_Samples2 <- do.call(rbind,HR_Sampling2)
 write.csv(HR_Samples2,"TestingRasters_Bob/HR_Samples2.csv",
           row.names = F)
 
+#      Sampler 3                                                            ####
+
+# Code For Sampler 3
+HR_Sampler3 <- function(RasterFilepath,BaseAgg_size,HR_Sizes,sample.size){
+  tryCatch({
+    
+    #### Notes                                                              ####
+    # RasterFilepath = Filepath of the raster that will be processed.
+    # BaseAgg_size   = The Raster Cell size you want in meters.
+    # HR_Sizes       = List of the home range sizes in square km.
+    # sample.size    = Quantity of "home ranges" to be extracted.
+    
+    #### Data Import and Transformations                                    ####
+    
+    # Raster Import,Reprojecting, and Standardizing Base Cell Size
+    Raster<-raster(RasterFilepath)
+    Raster_Reprojected <- projectRaster(Raster,
+                                        crs = paste0("+proj=utm +zone=",
+                                                     Auto_UTM_ID(Raster),
+                                                     " +ellps=WGS84 +datum=WGS84 +units=m +no_defs"))
+    
+    # Aggregating As close to 30 x 30 
+    Raster_Reprojected <- aggregate(Raster_Reprojected, 
+                                    fact = c(FactorCalculator_Agg(xres(Raster_Reprojected),BaseAgg_size),
+                                             FactorCalculator_Agg(yres(Raster_Reprojected),BaseAgg_size)))
+    
+    # Resampling The Rasters
+    DefaultRes <- Raster_Reprojected
+    
+    res(DefaultRes) <- BaseAgg_size
+    
+    Raster_Reprojected <- resample(Raster_Reprojected, DefaultRes, method = "bilinear")
+    
+    # Naming the Raster as DEM to make sure it is consistent
+    names(Raster_Reprojected) <- "DEM"
+    
+    
+    ####   Percent Difference in Surface Area Raster                        ####
+    
+    # Creating the Percent Difference Raster 
+    Raster_PDif <- PercentDifferenceFunction(Raster_Reprojected)
+    
+    # Naming the Raster as PercentDifference to make sure it is consistent
+    names(Raster_PDif)<-"PercentDifference" 
+    
+    ####   TRI Raster                                                       ####
+    
+    # Creating the TRI Raster
+    Raster_TRI <- terrain(Raster_Reprojected,opt="TRI")
+    
+    # Naming the Raster as TRI to make sure it is consistent
+    names(Raster_TRI)<-"TRI" 
+    
+    ####   Eliminating Zero values from DEM and PercentDifference Raster    ####
+    
+    # Eliminating zeros from the DEM raster.
+    Raster_Reprojected <- overlay(Raster_Reprojected, 
+                                  Raster_TRI, 
+                                  fun = function(x, y) {
+                                    x[is.na(y[])] <- NA
+                                    return(x)
+                                  })
+    
+    # Renaming the DEM raster again to make sure its consistent
+    names(Raster_Reprojected) <- "DEM"
+    
+    # Eliminating zeros from the PercentDifference raster.
+    Raster_PDif <- overlay(Raster_PDif,
+                           Raster_TRI,
+                           fun = function(x, y) {
+                             x[is.na(y[])] <- NA
+                             return(x)
+                           })
+    
+    # Renaming the PercentDifference raster again to make sure its consistent
+    names(Raster_PDif)<-"PercentDifference"
+    
+    ####   Stack                                                            ####
+    
+    #   Creating a Stack of the created Rasters
+    Stack<-raster::stack(Raster_Reprojected,
+                         Raster_TRI,
+                         Raster_PDif)
+    
+    #### Home Range Sampling                                                ####
+    
+    # Coarsening the Raster Layers and Sampling Home Ranges
+    HRs <- foreach(i = 1:length(HR_Sizes), .combine = rbind) %do% {
+      
+      # Changing Raster Resolutions to simulate Home Ranges
+      Random_CellSample<- aggregate(Stack,
+                                    fact = c(FactorCalculator(xres(Raster_Reprojected),i),FactorCalculator(yres(Raster_Reprojected),i)),
+                                    fun=mean,na.rm=TRUE) %>% sampleRandom(size=sample.size,na.rm=T) %>% as.data.frame()
+      
+      # Sampling Home Range Cells
+      Random_CellSample <- cbind(Size_Category=paste0(HR_Sizes[i],"km"),Random_CellSample)
+      
+    }
+    
+    #### Data Aggregation and Extracting Results                            ####
+    
+    # Raster Name
+    RasterName<-WOC_RasterName(Raster)
+    
+    # Raster Resolution in Square Meters 
+    RasterRes <- prod(res(Raster_Reprojected))
+    
+    # x Dimensions of Raster Cell
+    xres <- xres(Raster_Reprojected)
+    
+    # y Dimension of Raster Cell 
+    yres <- yres(Raster_Reprojected)
+    
+    # Organizing Results into a Dataframe 
+    Final_DF<-cbind(RasterName,RasterRes,xres,yres,HRs)
+    
+    return(Final_DF)},
+    error=function(e) c(NA))
+}
+
+
+# Running Sampler 2 with one Raster
+plan("multiprocess", workers = 4)
+
+HR_Sampling3<-future_lapply(Sampled_Rasters,
+                            HR_Sampler3,
+                            BaseAgg_size = 30,
+                            HR_Sizes = c(5,10,100,250),
+                            sample.size = 5)
+plan("sequential")
+
+# Joining the Samples into one coherent Dataframe
+
+HR_Samples3 <- do.call(rbind,HR_Sampling3)
+
+write.csv(HR_Samples3,"TestingRasters_Bob/HR_Samples3.csv",
+          row.names = F)
+
+
 ###############################################################################
 #   Plotting and Exploratory Plots                                          ####
 #      Coordinate and Resolution Plots                                      ####
@@ -632,15 +906,63 @@ ggplot(HR_Samples2,aes(as.numeric(HR_Samples2$longCoord),HR_Samples2$RasterRes))
   theme_bw()+
   geom_smooth()
 
-#         Comparison between sampler 1 and 2                                ####
+#         HR Sampler 3                                                      ####
+#            [Spatial Data]                                                 ####
+
+# Extracting Spatial Data from the Raster names
+latNS     <- str_sub(string = HR_Samples3$RasterName,
+                     start  = 1,
+                     end    = 1)
+
+latCoord  <- str_sub(string = HR_Samples3$RasterName,
+                     start  = 2,
+                     end    = 3)
+
+longEW    <- str_sub(string = HR_Samples3$RasterName,
+                     start  = 4,
+                     end    = 4)
+
+longCoord <- str_sub(string = HR_Samples3$RasterName,
+                     start  = 5,
+                     end    = 7)
+
+# Adding the Spatial Coordinates to the existing Data Frame
+HR_Samples3$latNS     <- latNS
+HR_Samples3$latCoord  <- latCoord
+HR_Samples3$longEW    <- longEW
+HR_Samples3$longCoord <- longCoord
+
+#            [Plots]                                                        ####
+
+# Raster Cell Area vs Latitude
+ggplot(HR_Samples3,aes(as.numeric(HR_Samples3$latCoord),HR_Samples3$RasterRes))+
+  geom_point(aes(color = factor(HR_Samples3$latNS)), size = 2)+
+  ggtitle("Home Range Sampler 3: Raster Area vs. Latidude Coordinate")+
+  ylab("Raster Area (m^2)")+
+  xlab("Latitude Coordinate")+
+  theme_bw()+
+  geom_smooth()
+
+# Raster Cell Area vs Longitude
+ggplot(HR_Samples3,aes(as.numeric(HR_Samples3$longCoord),HR_Samples3$RasterRes))+
+  geom_point(aes(color = factor(HR_Samples3$latNS)), size = 2)+
+  ggtitle("Home Range Sampler 3: Raster Area vs. Longitude Coordinate")+
+  ylab("Raster Area (m^2)")+
+  xlab("Longitude Coordinate")+
+  theme_bw()+
+  geom_smooth()
+
+#         Comparison between samplers                                       ####
 
 # Joining the Relevant Data
 RasRes1 <- HR_Samples1$RasterRes
 
 RasRes2 <- HR_Samples2$RasterRes
 
-Comparison <- data.frame(Sampler = c(rep(1,2000),rep(2,2000)),
-                         RasRes  = c(RasRes1,RasRes2))
+RasRes3 <- HR_Samples3$RasterRes
+
+Comparison <- data.frame(Sampler = c(rep(1,2000),rep(2,2000),rep(3,2000)),
+                         RasRes  = c(RasRes1,RasRes2,RasRes3))
 # Bar Plot
 ggplot(Comparison,aes(as.character(Comparison$Sampler),Comparison$RasRes))+
   geom_boxplot()+
@@ -686,6 +1008,25 @@ ggplot(HR_Samples2, aes(TRI,PercentDifference))+
   geom_smooth()+
   facet_grid(. ~ factor(Size_Category,levels = c("5km","10km","100km","250km")))
 
+#         HR Sampler 3                                                      ####
+
+# Plotting Percent Difference and  TRI 
+
+# General Plot 
+ggplot(HR_Samples3, aes(TRI,PercentDifference))+
+  geom_point()+
+  ggtitle(" Home Range Sampler 3: Percent Difference v. TRI")+
+  theme_bw()+
+  geom_smooth()
+
+# Faceted Plot 
+ggplot(HR_Samples3, aes(TRI,PercentDifference))+
+  geom_point()+
+  ggtitle(" Home Range Sampler 3: Percent Difference v. TRI")+
+  theme_bw()+
+  geom_smooth()+
+  facet_grid(. ~ factor(Size_Category,levels = c("5km","10km","100km","250km")))
+
 #      Percent Difference v TRI (Corrected)                                 ####
 #         HR Sampler 1                                                      ####
 
@@ -719,6 +1060,37 @@ ggplot(HR_Samples2, aes((TRI/RasterRes),PercentDifference))+
 ggplot(HR_Samples2, aes((TRI/RasterRes),PercentDifference))+
   geom_point()+
   ggtitle(" Home Range Sampler 2: Percent Difference v. Adjusted TRI")+
+  theme_bw()+
+  geom_smooth()+
+  facet_grid(. ~ factor(Size_Category,levels = c("5km","10km","100km","250km")))
+
+
+
+
+
+
+
+
+
+
+
+
+
+#         HR Sampler 3                                                      ####
+
+# Plotting Percent Difference and  TRI 
+
+# General Plot 
+ggplot(HR_Samples3, aes((TRI/RasterRes),PercentDifference))+
+  geom_point()+
+  ggtitle("Home Range Sampler 3: Percent Difference v. Adjusted TRI")+
+  theme_bw()+
+  geom_smooth()
+
+# Faceted Plot 
+ggplot(HR_Samples3, aes((TRI/RasterRes),PercentDifference))+
+  geom_point()+
+  ggtitle(" Home Range Sampler 3: Percent Difference v. Adjusted TRI")+
   theme_bw()+
   geom_smooth()+
   facet_grid(. ~ factor(Size_Category,levels = c("5km","10km","100km","250km")))
