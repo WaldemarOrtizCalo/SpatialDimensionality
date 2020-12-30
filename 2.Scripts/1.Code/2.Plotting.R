@@ -84,4 +84,23 @@ ggplot(HomeRangeSamples, aes(TRI,PercentDifference))+
   geom_smooth()+
   facet_grid(. ~ factor(Size_Category,levels = c("5km","10km","100km","250km")))
 
+#     Percent Difference v TRI (Outlier Removal)                            ####
+# Plotting Percent Difference and  TRI 
+
+# General Plot 
+ggplot(HomeRangeSamples, aes(TRI,PercentDifference))+
+  geom_point()+
+  ggtitle("Percent Difference v. TRI")+
+  theme_bw()+
+  geom_smooth()
+
+# Faceted Plot 
+ggplot(HomeRangeSamples, aes(TRI,PercentDifference))+
+  geom_point()+
+  ggtitle("Percent Difference v. TRI")+
+  theme_bw()+
+  geom_smooth()+
+  facet_grid(. ~ factor(Size_Category,levels = c("5km","10km","100km","250km")))
+
+
 ###############################################################################
