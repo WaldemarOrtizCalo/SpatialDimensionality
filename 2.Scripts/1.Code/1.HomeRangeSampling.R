@@ -38,7 +38,7 @@ RasterFilepaths<-list.files("G:\\RAW_DEM_Tiles",
                             full.names = T,
                             pattern = "dem")
 
-Sampled_Rasters <-sample(RasterFilepaths,2300,replace = F)
+Sampled_Rasters <-sample(RasterFilepaths,2500,replace = F)
 
 ZoneList<-read.csv("1.Data\\z.UTM_Reprojections\\DF_UTM_Zones.csv")
 
