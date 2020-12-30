@@ -43,7 +43,7 @@ Sampled_Rasters <-sample(RasterFilepaths,2500,replace = F)
 ZoneList<-read.csv("1.Data\\z.UTM_Reprojections\\DF_UTM_Zones.csv")
 
 ###############################################################################
-#   Home Range Sampling [Running a small sample size]                       ####
+#   Home Range Sampling                                                     ####
 #      Sampler                                                              ####
 
 # Code For Sampler 
@@ -182,3 +182,5 @@ HR_Samples <- do.call(rbind,HR_Sampling)
 write.csv(HR_Samples,"3.Output/HomeRangeSamples.csv",
           row.names = F)
 
+
+###############################################################################
