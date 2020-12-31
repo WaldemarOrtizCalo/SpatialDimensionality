@@ -4,7 +4,7 @@
 
 # Date:2020-12-30 
 
-# Purpose: 
+# Purpose: This script is for plotting the relationships
 
 ###############################################################################
 #   Library / Functions / Data                                              ####
