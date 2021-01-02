@@ -16,7 +16,12 @@ library(stringr)
 #      Functions                                                            ####
 
 #      Data                                                                 ####
+
+# General Data
 HomeRangeSamples <- read.csv("3.Output/HomeRangeSamples.csv")
+
+# Outlier Removal
+GenOutlier <- subset(HomeRangeSamples, PercentDifference < 15)
 
 ###############################################################################
 #   Plotting and Exploratory Plots                                          ####
@@ -85,22 +90,37 @@ ggplot(HomeRangeSamples, aes(TRI,PercentDifference))+
   facet_grid(. ~ factor(Size_Category,levels = c("5km","10km","100km","250km")))
 
 #     Percent Difference v TRI (Outlier Removal)                            ####
+
 # Plotting Percent Difference and  TRI 
 
-# General Plot 
-ggplot(HomeRangeSamples, aes(TRI,PercentDifference))+
+# General Plot
+ggplot(GenOutlier, aes(TRI,PercentDifference))+
   geom_point()+
   ggtitle("Percent Difference v. TRI")+
   theme_bw()+
   geom_smooth()
 
 # Faceted Plot 
-ggplot(HomeRangeSamples, aes(TRI,PercentDifference))+
+ggplot(GenOutlier, aes(TRI,PercentDifference))+
   geom_point()+
   ggtitle("Percent Difference v. TRI")+
   theme_bw()+
   geom_smooth()+
   facet_grid(. ~ factor(Size_Category,levels = c("5km","10km","100km","250km")))
 
+#     Distributions of Percent Difference                                   ####
+
+# Distribution General
+ggplot(GenOutlier) + geom_histogram(aes(PercentDifference))+
+  ggtitle("Percent Difference Distribution")+
+  xlab("Percent Difference")+
+  theme_bw()
+  
+# Distribution Faceted
+ggplot(GenOutlier) + geom_histogram(aes(GenOutlier$PercentDifference))+
+  ggtitle("Percent Difference Distribution")+
+  xlab("Percent Difference")+
+  theme_bw()+
+  facet_grid(. ~ factor(Size_Category,levels = c("5km","10km","100km","250km")))
 
 ###############################################################################
