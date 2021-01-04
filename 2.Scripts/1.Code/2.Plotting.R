@@ -18,10 +18,10 @@ library(stringr)
 #      Data                                                                 ####
 
 # General Data
-HomeRangeSamples <- read.csv("3.Output/HomeRangeSamples.csv")
+HomeRangeSamples <- read.csv("3.Output/HomeRangeSamples.csv") %>% subset(TRI > 0)
 
 # Outlier Removal
-GenOutlier <- subset(HomeRangeSamples, PercentDifference < 15)
+GenOutlier <- subset(HomeRangeSamples, PercentDifference < 30) %>% subset(TRI > 0)
 
 ###############################################################################
 #   Plotting and Exploratory Plots                                          ####
