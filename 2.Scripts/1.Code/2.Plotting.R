@@ -19,6 +19,7 @@ library(stringr)
 
 # General Data
 HomeRangeSamples <- read.csv("3.Output/HomeRangeSamples.csv") %>% subset(TRI > 0)
+HomeRangeSamples$PercentDifference[HomeRangeSamples$PercentDifference <= 0] <- 0
 
 # Outlier Removal
 GenOutlier <- subset(HomeRangeSamples, PercentDifference < 30) %>% subset(TRI > 0)
