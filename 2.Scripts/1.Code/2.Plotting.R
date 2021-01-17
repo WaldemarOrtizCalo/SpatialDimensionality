@@ -12,9 +12,8 @@
 #      Library                                                              ####
 library(ggplot2)
 library(stringr)
-
+library(tidyverse)
 #      Functions                                                            ####
-
 #      Data                                                                 ####
 
 # General Data
@@ -24,6 +23,25 @@ HomeRangeSamples$PercentDifference[HomeRangeSamples$PercentDifference <= 0] <- 0
 # Outlier Removal
 GenOutlier <- subset(HomeRangeSamples, PercentDifference < 30) %>% subset(TRI > 0)
 
+###############################################################################
+#   Summary Statistics                                                      ####
+
+# Grouping Observations and counting 
+groups <- GenOutlier %>% group_by(Size_Category) %>% 
+  count()
+
+# Grouping Observations and counting 
+groups <- GenOutlier %>% 
+  group_by(Size_Category) %>% 
+  summarise(PercentDifference_Mean = mean(PercentDifference),
+            PercentDifference_sd = sd(PercentDifference),
+            PercentDifference_range = range(PercentDifference),
+            TRI_Mean = mean(TRI),
+            TRI_sd = sd(TRI))
+
+mtcars %>%
+  group_by(cyl) %>%
+  summarise(qs = quantile(disp, c(0.25, 0.75)), prob = c(0.25, 0.75))
 ###############################################################################
 #   Plotting and Exploratory Plots                                          ####
 #     Coordinate and Resolution Plots                                       ####
