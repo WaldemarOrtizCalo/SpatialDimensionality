@@ -25,6 +25,7 @@ GenOutlier <- subset(HomeRangeSamples, PercentDifference < 30) %>% subset(TRI > 
 
 ###############################################################################
 #   Summary Statistics                                                      ####
+#      Whole Data                                                           ####
 
 # Grouping Observations and counting 
 groups <- GenOutlier %>% group_by(Size_Category) %>% 
@@ -35,13 +36,46 @@ groups <- GenOutlier %>%
   group_by(Size_Category) %>% 
   summarise(PercentDifference_Mean = mean(PercentDifference),
             PercentDifference_sd = sd(PercentDifference),
-            PercentDifference_range = range(PercentDifference),
+            PercentDifference_min = min(PercentDifference),
+            PercentDifference_max = max(PercentDifference),
             TRI_Mean = mean(TRI),
             TRI_sd = sd(TRI))
 
-mtcars %>%
-  group_by(cyl) %>%
-  summarise(qs = quantile(disp, c(0.25, 0.75)), prob = c(0.25, 0.75))
+
+#      Threshold Data Less Than                                             ####
+#        [Whole]                                                            ####
+
+Threshold <- subset(GenOutlier, PercentDifference < 5)
+
+percent_nonsig <- nrow(Threshold)/nrow(GenOutlier)
+
+#        [Per Category]                                                     ####
+groups <- Threshold %>% 
+  group_by(Size_Category) %>% 
+  summarise(PercentDifference_Mean = mean(PercentDifference),
+            PercentDifference_sd = sd(PercentDifference),
+            PercentDifference_min = min(PercentDifference),
+            PercentDifference_max = max(PercentDifference),
+            TRI_Mean = mean(TRI),
+            TRI_sd = sd(TRI))
+
+#      Threshold Data More Than                                             ####
+#        [Whole]                                                            ####
+
+Threshold <- subset(GenOutlier, PercentDifference > 5)
+
+percent_nonsig <- nrow(Threshold)/nrow(GenOutlier)
+
+#        [Per Category]                                                     ####
+groups <- Threshold %>% 
+  group_by(Size_Category) %>% 
+  summarise(PercentDifference_Mean = mean(PercentDifference),
+            PercentDifference_sd = sd(PercentDifference),
+            PercentDifference_min = min(PercentDifference),
+            PercentDifference_max = max(PercentDifference),
+            TRI_Mean = mean(TRI),
+            TRI_sd = sd(TRI))
+
 ###############################################################################
 #   Plotting and Exploratory Plots                                          ####
 #     Coordinate and Resolution Plots                                       ####
