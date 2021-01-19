@@ -57,7 +57,9 @@ groups <- Threshold %>%
             PercentDifference_min = min(PercentDifference),
             PercentDifference_max = max(PercentDifference),
             TRI_Mean = mean(TRI),
-            TRI_sd = sd(TRI))
+            TRI_sd = sd(TRI),
+            TRI_min = min(TRI),
+            TRI_max = max(TRI))
 
 #      Threshold Data More Than                                             ####
 #        [Whole]                                                            ####
@@ -74,7 +76,9 @@ groups <- Threshold %>%
             PercentDifference_min = min(PercentDifference),
             PercentDifference_max = max(PercentDifference),
             TRI_Mean = mean(TRI),
-            TRI_sd = sd(TRI))
+            TRI_sd = sd(TRI),
+            TRI_min = min(TRI),
+            TRI_max = max(TRI))
 
 ###############################################################################
 #   Plotting and Exploratory Plots                                          ####
