@@ -172,7 +172,7 @@ HR_Sampler_Global <- function(RasterFilepath,BaseAgg_size,HR_Sizes){
 plan("multiprocess", workers = 4)
 
 HR_Sampling<-future_lapply(RasterFilepaths[10000:12500],
-                           HR_Sampler,
+                           HR_Sampler_Global,
                            BaseAgg_size = 30,
                            HR_Sizes = c(5,10,100,250))
 plan("sequential")
@@ -182,7 +182,7 @@ plan("sequential")
 plan("multiprocess", workers = 4)
 
 HR_Sampling<-future_lapply(RasterFilepaths[12501:15000],
-                           HR_Sampler,
+                           HR_Sampler_Global,
                            BaseAgg_size = 30,
                            HR_Sizes = c(5,10,100,250))
 plan("sequential")
@@ -192,7 +192,7 @@ plan("sequential")
 plan("multiprocess", workers = 4)
 
 HR_Sampling<-future_lapply(RasterFilepaths[15000:17500],
-                           HR_Sampler,
+                           HR_Sampler_Global,
                            BaseAgg_size = 30,
                            HR_Sizes = c(5,10,100,250))
 plan("sequential")
@@ -201,7 +201,7 @@ plan("sequential")
 plan("multiprocess", workers = 4)
 
 HR_Sampling<-future_lapply(RasterFilepaths[17501:20000],
-                           HR_Sampler,
+                           HR_Sampler_Global,
                            BaseAgg_size = 30,
                            HR_Sizes = c(5,10,100,250))
 plan("sequential")
@@ -210,11 +210,8 @@ plan("sequential")
 plan("multiprocess", workers = 4)
 
 HR_Sampling<-future_lapply(RasterFilepaths[20000:length(RasterFilepaths)],
-                           HR_Sampler,
+                           HR_Sampler_Global,
                            BaseAgg_size = 30,
                            HR_Sizes = c(5,10,100,250))
 plan("sequential")
-
-
-
 ###############################################################################
