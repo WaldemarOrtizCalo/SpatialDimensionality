@@ -54,7 +54,7 @@ HR_Sampler_Global <- function(RasterFilepath,BaseAgg_size,HR_Sizes){
     # RasterFilepath = Filepath of the raster that will be processed.
     # BaseAgg_size   = The Raster Cell size you want in meters.
     # HR_Sizes       = List of the home range sizes in square km.
-    # sample.size    = Quantity of "home ranges" to be extracted.
+    
     
     #### Data Import and Transformations                                    ####
     
@@ -161,31 +161,11 @@ HR_Sampler_Global <- function(RasterFilepath,BaseAgg_size,HR_Sizes){
     Final_DF<-cbind(RasterName,RasterRes,xres,yres,HRs)
     
     # Export
-    write.csv(HR_Samples,paste0("3.Output/GlobalCSV/", RasterName,".csv"),
+    write.csv(Final_DF,paste0("3.Output/GlobalCSV/", RasterName,".csv"),
               row.names = F)
     },
     error=function(e) c(NA))
 }
-
-
-# Batch 4
-plan("multiprocess", workers = 4)
-
-HR_Sampling<-future_lapply(RasterFilepaths[10000:12500],
-                           HR_Sampler_Global,
-                           BaseAgg_size = 30,
-                           HR_Sizes = c(5,10,100,250))
-plan("sequential")
-
-
-# Batch 5
-plan("multiprocess", workers = 4)
-
-HR_Sampling<-future_lapply(RasterFilepaths[12501:15000],
-                           HR_Sampler_Global,
-                           BaseAgg_size = 30,
-                           HR_Sizes = c(5,10,100,250))
-plan("sequential")
 
 
 # Batch 6
