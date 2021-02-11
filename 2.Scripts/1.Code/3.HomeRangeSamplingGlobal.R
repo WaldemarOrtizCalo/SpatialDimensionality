@@ -38,8 +38,6 @@ RasterFilepaths<-list.files("G:\\RAW_DEM_Tiles",
                             full.names = T,
                             pattern = "dem")
 
-Sampled_Rasters <-sample(RasterFilepaths,2500,replace = F)
-
 ZoneList<-read.csv("1.Data\\z.UTM_Reprojections\\DF_UTM_Zones.csv")
 
 ###############################################################################
@@ -167,24 +165,6 @@ HR_Sampler_Global <- function(RasterFilepath,BaseAgg_size,HR_Sizes){
     error=function(e) c(NA))
 }
 
-
-# Batch 6
-plan("multiprocess", workers = 4)
-
-HR_Sampling<-future_lapply(RasterFilepaths[15000:17500],
-                           HR_Sampler_Global,
-                           BaseAgg_size = 30,
-                           HR_Sizes = c(5,10,100,250))
-plan("sequential")
-
-# Batch 7
-plan("multiprocess", workers = 4)
-
-HR_Sampling<-future_lapply(RasterFilepaths[17501:20000],
-                           HR_Sampler_Global,
-                           BaseAgg_size = 30,
-                           HR_Sizes = c(5,10,100,250))
-plan("sequential")
 
 # Batch 8
 plan("multiprocess", workers = 4)
