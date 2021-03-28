@@ -41,7 +41,6 @@ groups <- GenOutlier %>%
             TRI_Mean = mean(TRI),
             TRI_sd = sd(TRI))
 
-
 #      Threshold Data Less Than                                             ####
 #        [Whole]                                                            ####
 
