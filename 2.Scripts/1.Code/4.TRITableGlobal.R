@@ -10,8 +10,11 @@
 #   Library / Functions / Data                                              ####
 
 #      Library                                                              ####
+library(plyr)
+library(dplyr)
 library(tidyverse)
 library(mgcv)
+library(future.apply)
 
 #      Functions                                                            ####
 
@@ -47,89 +50,8 @@ pred <- data.frame("TRI" = seq(1,30, by = 0.01),
 
 #   For Loop Quantifying Earth                                              ####
 
-
-
-TRI_table <- function(CSV_filepaths){
-  df <- read_csv(CSV_filepaths,col_names = T) %>% 
-    group_by(Size_Category) %>% subset(TRI > 0) %>% arrange(Size_Category) %>% count()
-  
-  df$Name <- str_extract(CSV_filepaths,"\\w\\d\\d\\w\\d\\d\\d")
-  
-  return(df)
-}
-
-TRI_table(TRI_csv[1])
-
-data <- lapply(TRI_csv[1:3], TRI_table)
-
-do.call(rbind,data)
-
-
-
-###############################################################################
-
-base <- read_csv(TRI_csv[1],col_names = T) %>% 
-  group_by(Size_Category) %>% subset(TRI > 0)
-
-
-data.frame(RasterName = str_extract(TRI_csv[1],"\\w\\d\\d\\w\\d\\d\\d"),
-           "5km" = count(subset(base$TRI > 0)))
-
-
-
-base <- read_csv(TRI_csv[1],col_names = T) %>% 
-  group_by(Size_Category) %>% subset(TRI > 0)
-
-
-read_csv(TRI_csv[1],col_names = T) %>% 
-  group_by(Size_Category) %>% subset(TRI > 0) %>% 
-  summarise("Nonsig"= count(subset(.,TRI > 0)))
-
-
-data.frame("Name" = "Raster",
-           "NonSig" = count(subset(base,base$TRI < 5.23)),
-           "Low" = count(subset(base,base$TRI > 5.23 & base$TRI < 10)))
-
-
-
-
-
-###############################################################################
-
-base <- read_csv(TRI_csv[1],col_names = T) %>% subset(TRI > 0)
-
-T1 <- subset(base,TRI < 5.23) %>% group_by(Size_Category) %>% 
-  count() %>% 
-  rename(Size_Category = Size_Category,T1 = n)
-
-T2 <- subset(base,TRI > 5.23 & TRI < 10) %>% group_by(Size_Category) %>% 
-  count() %>% 
-  rename(Size_Category = Size_Category,T2 = n)
-
-T3 <- subset(base,TRI > 10 & TRI < 15) %>% group_by(Size_Category) %>% 
-  count() %>% 
-  rename(Size_Category = Size_Category,T3 = n)
-
-T4 <- subset(base,TRI > 15 & TRI < 20) %>% group_by(Size_Category) %>% 
-  count() %>% 
-  rename(Size_Category = Size_Category,T4 = n)
-
-T5 <- subset(base,TRI > 20) %>% group_by(Size_Category) %>% 
-  count() %>% 
-  rename(Size_Category = Size_Category,T5 = n)
-
-left_join(T1,T2, by = "Size_Category")
-
-t <- do.call(left_join,c(T1,T2), by= "Size_Category")
-
-
-join <- join_all(list(T1,T2,T3,T4,T5), by='Size_Category', type='left')
-
-final <- cbind("Raster"= str_extract(TRI_csv[1],"\\w\\d\\d\\w\\d\\d\\d"),
-               join)
-
-
-TRI_table <- function(TRI_csv){
+# Create Function
+TRI_tables <- function(TRI_csv){
   
   base <- read_csv(TRI_csv,col_names = T) %>% subset(TRI > 0)
   
@@ -155,37 +77,62 @@ TRI_table <- function(TRI_csv){
   
   join <- join_all(list(T1,T2,T3,T4,T5), by='Size_Category', type='left')
   
-  final <- cbind("Raster"= str_extract(TRI_csv[1],"\\w\\d\\d\\w\\d\\d\\d"),
+  final <- cbind("Raster"= str_extract(TRI_csv,"\\w\\d\\d\\w\\d\\d\\d"),
                  join)
-  
   return(final)
 }
 
-base <- read_csv(TRI_csv[1],col_names = T) %>% subset(TRI > 0)
+# Run Function
+tic()
+list <- lapply(TRI_csv, TRI_tables)
+toc()
 
-T1 <- subset(base,TRI < 5.23) %>% group_by(Size_Category) %>% 
-  count() %>% 
-  rename(Size_Category = Size_Category,T1 = n)
+# Final Tables RAW and exporting
+Final_TRI_tables <-do.call(rbind,list)
 
-T2 <- subset(base,TRI > 5.23 & TRI < 10) %>% group_by(Size_Category) %>% 
-  count() %>% 
-  rename(Size_Category = Size_Category,T2 = n)
+write.csv(Final_TRI_tables,"3.Output/RawTRIData_Global.csv")
 
-T3 <- subset(base,TRI > 10 & TRI < 15) %>% group_by(Size_Category) %>% 
-  count() %>% 
-  rename(Size_Category = Size_Category,T3 = n)
+#      [Final Table]                                                              ####
 
-T4 <- subset(base,TRI > 15 & TRI < 20) %>% group_by(Size_Category) %>% 
-  count() %>% 
-  rename(Size_Category = Size_Category,T4 = n)
+FinalTable <- Final_TRI_tables
 
-T5 <- subset(base,TRI > 20) %>% group_by(Size_Category) %>% 
-  count() %>% 
-  rename(Size_Category = Size_Category,T5 = n)
+# Size Categories
+FinalTable5   <- subset(FinalTable, Size_Category == "5km")
+FinalTable10  <- subset(FinalTable, Size_Category == "10km")
+FinalTable100 <- subset(FinalTable, Size_Category == "100km")
+FinalTable250 <- subset(FinalTable, Size_Category == "250km")
 
-join <- join_all(list(T1,T2,T3,T4,T5), by='Size_Category', type='left')
+#        [T1]                                                              ####
 
-final <- cbind("Raster"= str_extract(TRI_csv[1],"\\w\\d\\d\\w\\d\\d\\d"),
-               join)
+sum(FinalTable5$T1,na.rm = T)
+sum(FinalTable10$T1,na.rm = T)
+sum(FinalTable100$T1,na.rm = T)
+sum(FinalTable250$T1,na.rm = T)
 
+#        [T2]                                                              ####
 
+sum(FinalTable5$T2,na.rm = T)
+sum(FinalTable10$T2,na.rm = T)
+sum(FinalTable100$T2,na.rm = T)
+sum(FinalTable250$T2,na.rm = T)
+
+#        [T3]                                                              ####
+
+sum(FinalTable5$T3,na.rm = T)
+sum(FinalTable10$T3,na.rm = T)
+sum(FinalTable100$T3,na.rm = T)
+sum(FinalTable250$T3,na.rm = T)
+
+#        [T4]                                                              ####
+
+sum(FinalTable5$T4,na.rm = T)
+sum(FinalTable10$T4,na.rm = T)
+sum(FinalTable100$T4,na.rm = T)
+sum(FinalTable250$T4,na.rm = T)
+
+#        [T5]                                                              ####
+
+sum(FinalTable5$T5,na.rm = T)
+sum(FinalTable10$T5,na.rm = T)
+sum(FinalTable100$T5,na.rm = T)
+sum(FinalTable250$T5,na.rm = T)
