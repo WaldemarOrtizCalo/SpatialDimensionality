@@ -25,10 +25,10 @@ HomeRangeSamples <- read.csv("3.Output/HomeRangeSamples.csv") %>% subset(TRI > 0
 HomeRangeSamples$PercentDifference[HomeRangeSamples$PercentDifference <= 0] <- 0
 
 # Outlier Removal
-GenOutlier <- subset(HomeRangeSamples, PercentDifference < 30) %>% subset(TRI > 0)
+GenOutlier <- subset(HomeRangeSamples, TRI < 25) %>% subset(TRI > 0)
 
 # TRI Global
-TRI_csv <-list.files("3.Output/GlobalCSV",
+csv_list <-list.files("3.Output/GlobalCSV",
                             recursive = F,
                             full.names = T,
                             pattern = ".csv")
@@ -51,41 +51,41 @@ pred <- data.frame("TRI" = seq(1,30, by = 0.01),
 #   For Loop Quantifying Earth                                              ####
 
 # Create Function
-TRI_tables <- function(TRI_csv){
+TRI_tables <- function(csv_list){
+  tryCatch({
+  TRI_csv <- csv_list
   
-  base <- read_csv(TRI_csv,col_names = T) %>% subset(TRI > 0)
+  base <- read_csv(TRI_csv,col_names = T) 
   
-  T1 <- subset(base,TRI < 5.23) %>% group_by(Size_Category) %>% 
-    count() %>% 
-    rename(Size_Category = Size_Category,T1 = n)
+  base <- read_csv(TRI_csv,col_names = T)  %>% subset(TRI > 0)
   
-  T2 <- subset(base,TRI > 5.23 & TRI < 10) %>% group_by(Size_Category) %>% 
-    count() %>% 
-    rename(Size_Category = Size_Category,T2 = n)
+  base$Size_Category <- factor(base$Size_Category,levels = c("5km","10km","100km","250km"))
   
-  T3 <- subset(base,TRI > 10 & TRI < 15) %>% group_by(Size_Category) %>% 
-    count() %>% 
-    rename(Size_Category = Size_Category,T3 = n)
+  T1 <- subset(base,TRI < 5.23) %>% group_by(Size_Category) %>% tally() 
   
-  T4 <- subset(base,TRI > 15 & TRI < 20) %>% group_by(Size_Category) %>% 
-    count() %>% 
-    rename(Size_Category = Size_Category,T4 = n)
+  T2 <- subset(base,TRI > 5.23 & TRI < 10) %>% group_by(Size_Category) %>% tally()
   
-  T5 <- subset(base,TRI > 20) %>% group_by(Size_Category) %>% 
-    count() %>% 
-    rename(Size_Category = Size_Category,T5 = n)
+  T3 <- subset(base,TRI > 10 & TRI < 15) %>% group_by(Size_Category) %>% tally()
+  
+  T4 <- subset(base,TRI > 15 & TRI < 20) %>% group_by(Size_Category) %>% tally()
+  
+  T5 <- subset(base,TRI > 20) %>% group_by(Size_Category) %>% tally()
   
   join <- join_all(list(T1,T2,T3,T4,T5), by='Size_Category', type='left')
   
   final <- cbind("Raster"= str_extract(TRI_csv,"\\w\\d\\d\\w\\d\\d\\d"),
                  join)
-  return(final)
+  
+  colnames(final) <- c("Raster", "Size_Category","T1","T2","T3","T4","T5")
+  
+  return(final)},
+  error=function(e) c(NA))
 }
 
 # Run Function
-tic()
-list <- lapply(TRI_csv, TRI_tables)
-toc()
+
+list <- lapply(csv_list, TRI_tables)
+
 
 # Final Tables RAW and exporting
 Final_TRI_tables <-do.call(rbind,list)
@@ -94,7 +94,7 @@ write.csv(Final_TRI_tables,"3.Output/RawTRIData_Global.csv")
 
 #      [Final Table]                                                              ####
 
-FinalTable <- Final_TRI_tables
+FinalTable <- read.csv("3.Output/RawTRIData_Global.csv")
 
 # Size Categories
 FinalTable5   <- subset(FinalTable, Size_Category == "5km")
