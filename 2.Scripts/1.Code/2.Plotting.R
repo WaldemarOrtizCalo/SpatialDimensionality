@@ -21,7 +21,8 @@ HomeRangeSamples <- read.csv("3.Output/HomeRangeSamples.csv") %>% subset(TRI > 0
 HomeRangeSamples$PercentDifference[HomeRangeSamples$PercentDifference <= 0] <- 0
 
 # Outlier Removal
-GenOutlier <- subset(HomeRangeSamples, PercentDifference < 30) %>% subset(TRI > 0)
+GenOutlier <- subset(HomeRangeSamples,TRI < 25) %>% subset(TRI > 0)
+GenOutlier$Size_Category <- factor(GenOutlier$Size_Category, levels = c("5km","10km","100km","250km"))
 
 ###############################################################################
 #   Summary Statistics                                                      ####
@@ -180,3 +181,16 @@ ggplot(GenOutlier) + geom_histogram(aes(GenOutlier$PercentDifference))+
   facet_grid(. ~ factor(Size_Category,levels = c("5km","10km","100km","250km")))
 
 ###############################################################################
+#   Final Plots                                                             ####
+#      [Percent Difference v TRI]                                           ####
+
+ggplot(GenOutlier, aes(TRI,PercentDifference))+
+  geom_point(aes(shape = Size_Category,color = Size_Category),size = 3)+
+  scale_shape_manual(values=c(15, 16, 17,18))+
+  theme_bw()+
+  geom_smooth(color = "black")+
+  theme(text = element_text(size = 16))+
+  xlab("Terrain Ruggedness Index (TRI)")+
+  ylab("Percent Difference")
+
+
