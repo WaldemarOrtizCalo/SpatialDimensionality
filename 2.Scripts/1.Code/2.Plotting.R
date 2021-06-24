@@ -184,13 +184,37 @@ ggplot(GenOutlier) + geom_histogram(aes(GenOutlier$PercentDifference))+
 #   Final Plots                                                             ####
 #      [Percent Difference v TRI]                                           ####
 
-ggplot(GenOutlier, aes(TRI,PercentDifference))+
+# Different Color and Shape
+p1 <- ggplot(GenOutlier, aes(TRI,PercentDifference))+
   geom_point(aes(shape = Size_Category,color = Size_Category),size = 3)+
   scale_shape_manual(values=c(15, 16, 17,18))+
   theme_bw()+
   geom_smooth(color = "black")+
   theme(text = element_text(size = 16))+
   xlab("Terrain Ruggedness Index (TRI)")+
-  ylab("Percent Difference")
+  ylab("Percent Difference")+
+  scale_color_manual(values=c("#E69F00", "#56B4E9", "#009E73","#CC79A7"))
 
+p1
 
+# Different Color Only (Final)
+p2 <- ggplot(GenOutlier, aes(TRI,PercentDifference))+
+  geom_point(aes(color = Size_Category),size = 6)+
+  theme_bw()+
+  geom_smooth(color = "black",size = 3)+
+  theme(text = element_text(size = 28))+
+  xlab("Terrain Ruggedness Index (TRI)")+
+  ylab("Percent Difference")+
+  scale_color_manual(values=c("#E69F00", "#56B4E9", "#009E73","#CC79A7"))+
+  labs(color='Size Category')
+
+p2 
+
+#      [Saving Plot]                                                        ####
+ggsave("3.Output/Figures/PDifTRI.png",
+       plot = p2,
+       device = "png",
+       width = 20,
+       height = 11,
+       units = "in",
+       dpi = 300)
